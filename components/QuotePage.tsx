@@ -21,7 +21,7 @@ const NewPrintJobPage: React.FC<NewPrintJobPageProps> = ({ setCurrentPage, curre
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   
-  // AI State
+  // Analysis State
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiQuote, setAiQuote] = useState<IntelligentQuote | null>(null);
 
@@ -79,7 +79,7 @@ const NewPrintJobPage: React.FC<NewPrintJobPageProps> = ({ setCurrentPage, curre
       clientId: currentUser?.id || 'guest',
       clientName: currentUser?.name || 'Visitante',
       title,
-      description: `${description}\n\n[Análise IA]: ${aiQuote?.analysis || 'N/A'}`,
+      description: `${description}\n\n[Análise Automática]: ${aiQuote?.analysis || 'N/A'}`,
       material,
       color,
       fileUrl: modelUrl,
@@ -218,9 +218,9 @@ const NewPrintJobPage: React.FC<NewPrintJobPageProps> = ({ setCurrentPage, curre
               </form>
           </div>
 
-          {/* Right Column: AI Analysis */}
+          {/* Right Column: Analysis */}
           <div className="lg:w-1/3 space-y-6">
-              {/* AI Card */}
+              {/* Analysis Card */}
               <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-2xl shadow-xl p-6 text-white relative overflow-hidden">
                    <div className="absolute top-0 right-0 p-4 opacity-10">
                        <CpuIcon className="w-32 h-32" />
@@ -228,12 +228,12 @@ const NewPrintJobPage: React.FC<NewPrintJobPageProps> = ({ setCurrentPage, curre
                    <div className="relative z-10">
                        <div className="flex items-center space-x-2 mb-4 text-emerald-400">
                            <ZapIcon className="w-5 h-5" />
-                           <span className="font-bold tracking-wider text-sm uppercase">Estimativa Inteligente</span>
+                           <span className="font-bold tracking-wider text-sm uppercase">Estimativa Automática</span>
                        </div>
                        
                        {!aiQuote ? (
                            <div className="text-center py-8">
-                               <p className="text-gray-300 mb-6">Analise seu projeto com IA para obter uma estimativa de preço e recomendações técnicas antes de enviar.</p>
+                               <p className="text-gray-300 mb-6">Analise seu projeto para obter uma estimativa de preço e recomendações técnicas antes de enviar.</p>
                                <button 
                                     onClick={handleAiAnalysis}
                                     disabled={isAnalyzing}
