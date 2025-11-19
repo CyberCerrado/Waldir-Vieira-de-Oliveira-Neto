@@ -1,0 +1,7 @@
+{
+  "name": "Agência Maker",
+  "description": "A web application to connect clients, companies, and public bodies with 3D printing makers and reverse engineering designers, facilitating quotes, orders, and sales in a collaborative marketplace.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
