@@ -1,11 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Maker, ExternalModel } from '../types';
 import { UserRole } from '../types';
 import { MOCK_MAKERS, EXTERNAL_3D_SITES } from '../constants';
-import { StarIcon, MapPinIcon, ShieldCheckIcon, ZapIcon, LayersIcon, CpuIcon, TruckIcon, UploadCloudIcon, SearchIcon, LinkIcon, CubeIcon } from './Icons';
+import { StarIcon, MapPinIcon, ShieldCheckIcon, ZapIcon, TruckIcon, UploadCloudIcon, SearchIcon, LinkIcon, CubeIcon } from './Icons';
 import type { Page } from '../App';
-import { searchExternalModels } from '../services/searchService';
+import { searchExternalModels, getSuggestedModels } from '../services/searchService';
 
 interface HomePageProps {
   setCurrentPage: (page: Page, context?: any) => void;
@@ -47,6 +47,19 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, currentUser }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<ExternalModel[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [suggestions, setSuggestions] = useState<ExternalModel[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(true);
+
+  useEffect(() => {
+      // Load initial suggestions to inspire the user
+      const loadSuggestions = async () => {
+          setLoadingSuggestions(true);
+          const data = await getSuggestedModels();
+          setSuggestions(data);
+          setLoadingSuggestions(false);
+      };
+      loadSuggestions();
+  }, []);
 
   const handleViewProfile = (maker: Maker) => {
     setCurrentPage('makerProfile', maker);
@@ -54,15 +67,20 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, currentUser }) => {
   
   const isAlreadyMaker = currentUser?.roles.some(role => role !== UserRole.CLIENT);
 
-  const handleSearch = async (e: React.FormEvent) => {
-      e.preventDefault();
-      if(!searchTerm.trim()) return;
+  const handleSearch = async (e?: React.FormEvent, termOverride?: string) => {
+      if (e) e.preventDefault();
+      const term = termOverride || searchTerm;
+      
+      if(!term.trim()) return;
+      
+      if (termOverride) setSearchTerm(termOverride);
 
       setIsSearching(true);
       setHasSearched(true);
+      setSearchResults([]); // Clear previous results immediately
       
       // Call the AI simulation service
-      const results = await searchExternalModels(searchTerm);
+      const results = await searchExternalModels(term);
       setSearchResults(results);
       setIsSearching(false);
   };
@@ -73,7 +91,7 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, currentUser }) => {
           title: model.title,
           description: `Orçamento para impressão do modelo encontrado: ${model.title} (por ${model.author}).`,
           modelUrl: model.link,
-          externalImage: model.imageUrl // Custom prop to show image in quote page
+          externalImage: model.imageUrl 
       });
   };
 
@@ -85,11 +103,19 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, currentUser }) => {
           default: return 'bg-gray-600';
       }
   };
+  
+  const categories = [
+      { label: 'Decoração', icon: '🏺' },
+      { label: 'Cosplay', icon: '🎭' },
+      { label: 'Organizadores', icon: '📦' },
+      { label: 'Jogos', icon: '🎲' },
+      { label: 'Peças Técnicas', icon: '⚙️' },
+  ];
 
   return (
     <div className="animate-fade-in font-sans">
       {/* Modern Hero Section / Search Hub */}
-      <section className={`relative bg-slate-900 text-white overflow-hidden transition-all duration-500 ${hasSearched ? 'min-h-[400px]' : 'min-h-[600px]'} flex items-center`}>
+      <section className={`relative bg-slate-900 text-white overflow-hidden transition-all duration-500 ${hasSearched ? 'min-h-[300px]' : 'min-h-[500px]'} flex items-center`}>
         {/* Background Effects */}
         <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900 via-slate-900 to-black"></div>
         <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
@@ -105,13 +131,9 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, currentUser }) => {
                             O "Google" da Impressão 3D
                         </div>
 
-                        <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-slate-400">
+                        <h1 className="text-4xl md:text-6xl font-black tracking-tight leading-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-slate-400">
                             Encontre. Orce. Imprima.
                         </h1>
-                        
-                        <p className="text-xl text-slate-300 mb-10 max-w-2xl leading-relaxed">
-                            Busque modelos 3D em todos os grandes sites simultaneamente e conecte-se com makers para imprimir.
-                        </p>
                     </>
                 )}
 
@@ -120,15 +142,15 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, currentUser }) => {
                 )}
 
                 {/* Search Bar Interface */}
-                <div className="w-full max-w-3xl relative group">
+                <div className="w-full max-w-3xl relative group z-20">
                     <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                    <form onSubmit={handleSearch} className="relative bg-white rounded-xl shadow-2xl p-2 flex flex-col md:flex-row items-center">
+                    <form onSubmit={(e) => handleSearch(e)} className="relative bg-white rounded-xl shadow-2xl p-2 flex flex-col md:flex-row items-center">
                         <div className="flex-grow w-full flex items-center px-4">
                             <SearchIcon className="w-6 h-6 text-gray-400 mr-3" />
                             <input 
                                 type="text" 
                                 placeholder="O que você quer imprimir hoje? (Ex: Pikachu, Suporte, Vaso)" 
-                                className="w-full py-4 text-lg text-slate-800 placeholder-gray-400 bg-transparent outline-none border-none focus:ring-0"
+                                className="w-full py-3 md:py-4 text-lg text-slate-800 placeholder-gray-400 bg-transparent outline-none border-none focus:ring-0"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
@@ -136,7 +158,7 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, currentUser }) => {
                         <button 
                             type="submit"
                             disabled={isSearching}
-                            className="w-full md:w-auto bg-maker-primary hover:bg-blue-600 text-white font-bold py-4 px-8 rounded-lg transition-all duration-200 shadow-lg whitespace-nowrap mt-2 md:mt-0 flex items-center justify-center"
+                            className="w-full md:w-auto bg-maker-primary hover:bg-blue-600 text-white font-bold py-3 md:py-4 px-8 rounded-lg transition-all duration-200 shadow-lg whitespace-nowrap mt-2 md:mt-0 flex items-center justify-center"
                         >
                             {isSearching ? (
                                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -145,14 +167,17 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, currentUser }) => {
                     </form>
                 </div>
                 
+                {/* Quick Categories Chips */}
                 {!hasSearched && (
-                    <div className="mt-8 flex items-center space-x-6 text-sm text-slate-400">
-                        <span>Sites integrados:</span>
-                        {EXTERNAL_3D_SITES.map(site => (
-                            <span key={site.name} className="flex items-center font-medium text-slate-300">
-                                <div className="w-1.5 h-1.5 rounded-full bg-green-400 mr-2"></div>
-                                {site.name}
-                            </span>
+                    <div className="mt-6 flex flex-wrap justify-center gap-3 animate-fade-in">
+                        {categories.map(cat => (
+                            <button 
+                                key={cat.label}
+                                onClick={() => handleSearch(undefined, cat.label)}
+                                className="bg-slate-800/50 hover:bg-slate-700/80 border border-slate-700 text-slate-300 text-sm py-2 px-4 rounded-full transition-all flex items-center backdrop-blur-sm"
+                            >
+                                <span className="mr-2">{cat.icon}</span> {cat.label}
+                            </button>
                         ))}
                     </div>
                 )}
@@ -170,16 +195,21 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, currentUser }) => {
                           <p className="text-lg text-gray-600 font-medium">Varrendo a internet em busca de modelos...</p>
                       </div>
                   ) : searchResults.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <>
+                        <div className="flex items-center justify-between mb-6">
+                             <button onClick={() => setHasSearched(false)} className="text-maker-primary hover:underline flex items-center">
+                                 &larr; Voltar para Início
+                             </button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                           {searchResults.map((model) => (
                               <div key={model.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 group">
-                                  <div className="relative h-48 overflow-hidden bg-gray-200">
+                                  <div className="relative h-56 overflow-hidden bg-gray-200">
                                       <img 
                                         src={model.imageUrl} 
                                         alt={model.title} 
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                         onError={(e) => {
-                                            // Fallback if image fails
                                             (e.target as HTMLImageElement).src = `https://placehold.co/600x400?text=${encodeURIComponent(model.title)}`;
                                         }}
                                       />
@@ -203,46 +233,92 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, currentUser }) => {
                                             rel="noopener noreferrer"
                                             className="flex-1 flex items-center justify-center py-2 px-4 border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
                                           >
-                                              <LinkIcon className="w-4 h-4 mr-2" /> Ver Original
+                                              <LinkIcon className="w-4 h-4 mr-2" /> Ver
                                           </a>
                                           <button 
                                             onClick={() => handleQuoteModel(model)}
                                             className="flex-1 flex items-center justify-center py-2 px-4 bg-maker-secondary hover:bg-yellow-400 text-maker-dark rounded-lg text-sm font-bold shadow-sm transition-colors"
                                           >
-                                              <ZapIcon className="w-4 h-4 mr-2" /> Orçar Agora
+                                              <ZapIcon className="w-4 h-4 mr-2" /> Orçar
                                           </button>
                                       </div>
                                   </div>
                               </div>
                           ))}
-                      </div>
+                        </div>
+                      </>
                   ) : (
                       <div className="text-center py-20">
                           <CubeIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                           <h3 className="text-xl font-bold text-gray-800">Nenhum modelo encontrado</h3>
-                          <p className="text-gray-500">Tente buscar por termos mais genéricos em inglês (ex: "Phone Stand").</p>
-                      </div>
-                  )}
-                  
-                  {searchResults.length > 0 && (
-                      <div className="mt-12 text-center">
-                         <p className="text-gray-500 text-sm mb-4">Não encontrou o que queria?</p>
-                         <button 
-                            onClick={() => setCurrentPage('newPrintJob')}
-                            className="text-maker-primary font-semibold hover:underline"
-                         >
-                             Fazer pedido personalizado sem modelo &rarr;
-                         </button>
+                          <p className="text-gray-500 mb-6">Tente buscar por termos mais genéricos.</p>
+                           <button onClick={() => setHasSearched(false)} className="text-maker-primary font-semibold hover:underline">
+                                 Voltar para Início
+                           </button>
                       </div>
                   )}
               </div>
           </section>
       )}
 
-      {/* How It Works Steps - Simplified (Only show if not searching results) */}
+      {/* Suggested / Trending Models Section (Only if NOT searching) */}
+      {!hasSearched && (
+          <section className="py-16 bg-gray-50">
+              <div className="container mx-auto px-4">
+                  <div className="flex items-center justify-between mb-8">
+                      <div>
+                          <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Em Alta na Comunidade 🔥</h2>
+                          <p className="text-gray-500 mt-1">Inspirações para sua próxima impressão.</p>
+                      </div>
+                  </div>
+
+                  {loadingSuggestions ? (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          {[1,2,3].map(i => (
+                              <div key={i} className="h-64 bg-gray-200 rounded-xl animate-pulse"></div>
+                          ))}
+                      </div>
+                  ) : (
+                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {suggestions.map((model) => (
+                              <div key={model.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 group">
+                                  <div className="relative h-48 overflow-hidden bg-gray-200">
+                                      <img 
+                                        src={model.imageUrl} 
+                                        alt={model.title} 
+                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = `https://placehold.co/600x400?text=${encodeURIComponent(model.title)}`;
+                                        }}
+                                      />
+                                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
+                                      <span className="absolute bottom-3 left-3 text-white font-bold text-lg drop-shadow-md truncate w-11/12">
+                                          {model.title}
+                                      </span>
+                                  </div>
+                                  <div className="p-4 flex justify-between items-center">
+                                      <span className={`text-xs font-bold px-2 py-1 rounded text-white ${getSourceColor(model.source)}`}>
+                                          {model.source}
+                                      </span>
+                                      <button 
+                                        onClick={() => handleQuoteModel(model)}
+                                        className="text-maker-primary text-sm font-bold hover:underline flex items-center"
+                                      >
+                                          Orçar este item &rarr;
+                                      </button>
+                                  </div>
+                              </div>
+                          ))}
+                       </div>
+                  )}
+              </div>
+          </section>
+      )}
+
+      {/* How It Works Steps */}
       {!hasSearched && (
         <>
-            <section className="py-20 bg-white">
+            <section className="py-20 bg-white border-t border-gray-200">
                 <div className="container mx-auto px-4">
                     <div className="text-center mb-16">
                         <h2 className="text-3xl font-bold text-slate-900">Como funciona a Agência Maker?</h2>
