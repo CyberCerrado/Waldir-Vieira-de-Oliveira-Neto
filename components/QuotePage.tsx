@@ -4,6 +4,7 @@ import { UploadCloudIcon, ZapIcon, CheckCircleIcon, CpuIcon, LinkIcon } from './
 import type { Page } from '../App';
 import type { PrintJob, IntelligentQuote } from '../types';
 import { getIntelligentPrice } from '../services/geminiService';
+import { savePrintJob } from '../services/storageService';
 
 interface NewPrintJobPageProps {
   setCurrentPage: (page: Page, context?: any) => void;
@@ -74,6 +75,10 @@ const NewPrintJobPage: React.FC<NewPrintJobPageProps> = ({ setCurrentPage, curre
     e.preventDefault();
     setIsSubmitting(true);
 
+    // Default prices if AI wasn't used, just for the MVP to work
+    const finalPrice = aiQuote?.estimatedPrice || 50.00; 
+    const serviceFee = finalPrice * 0.15; // 15% fee
+
     const newJob: PrintJob = {
       id: `job-${Date.now()}`,
       clientId: currentUser?.id || 'guest',
@@ -84,16 +89,21 @@ const NewPrintJobPage: React.FC<NewPrintJobPageProps> = ({ setCurrentPage, curre
       color,
       fileUrl: modelUrl,
       status: 'Aberto',
+      paymentStatus: 'Pendente',
+      price: finalPrice,
+      serviceFee: serviceFee,
       createdAt: new Date().toISOString(),
     };
 
-    console.log("Nova solicitação de impressão criada:", newJob);
+    // Persist to local storage
+    savePrintJob(newJob);
     
     setTimeout(() => {
         setIsSubmitting(false);
-        alert('Sua solicitação foi enviada para nossa rede de makers! Você receberá propostas em breve.');
-        setCurrentPage('home');
-    }, 1500);
+        // Redirect to dashboard to pay
+        alert('Solicitação criada! Você será redirecionado para o pagamento.');
+        setCurrentPage('printJobsDashboard');
+    }, 1000);
   };
   
   const isSubmitDisabled = !title.trim() || isSubmitting;
@@ -212,7 +222,7 @@ const NewPrintJobPage: React.FC<NewPrintJobPageProps> = ({ setCurrentPage, curre
                     disabled={isSubmitDisabled}
                     className="w-full bg-maker-primary text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
                     >
-                    {isSubmitting ? 'Enviando...' : 'Solicitar Orçamentos aos Makers'}
+                    {isSubmitting ? 'Enviando...' : 'Solicitar e Ir para Pagamento'}
                     </button>
                 </div>
               </form>
@@ -250,6 +260,7 @@ const NewPrintJobPage: React.FC<NewPrintJobPageProps> = ({ setCurrentPage, curre
                            <div className="animate-fade-in">
                                <div className="bg-white/10 rounded-lg p-4 mb-4 backdrop-blur-sm border border-white/10">
                                    <h4 className="font-bold text-lg mb-2">Análise de Custo</h4>
+                                   <p className="text-3xl font-bold text-emerald-400 mb-2">R$ {aiQuote.estimatedPrice.toFixed(2)}</p>
                                    <p className="text-sm text-gray-200 whitespace-pre-wrap">{aiQuote.analysis}</p>
                                </div>
                                

@@ -1,15 +1,19 @@
+
 import React, { useState } from 'react';
 import type { Page } from '../App';
 import type { Maker } from '../types';
+import { UserRole } from '../types';
 import { LinkIcon } from './Icons';
 import { USER_ROLES_OPTIONS } from '../constants';
+import { saveUser } from '../services/storageService';
 
 interface BecomeMakerPageProps {
   setCurrentPage: (page: Page) => void;
   currentUser: Maker | null;
+  onLogin: (user: Maker) => void;
 }
 
-const BecomeMakerPage: React.FC<BecomeMakerPageProps> = ({ setCurrentPage, currentUser }) => {
+const BecomeMakerPage: React.FC<BecomeMakerPageProps> = ({ setCurrentPage, currentUser, onLogin }) => {
   const [formData, setFormData] = useState({
     name: currentUser?.name || '',
     email: currentUser?.email || '',
@@ -38,14 +42,34 @@ const BecomeMakerPage: React.FC<BecomeMakerPageProps> = ({ setCurrentPage, curre
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    console.log("Maker Application Submitted:", formData);
+    
+    // Construct the new User Object
+    const newUser: Maker = {
+        id: `maker-${Date.now()}`, // Generate a timestamp-based ID
+        name: formData.name,
+        email: formData.email,
+        roles: [UserRole.MAKER, ...formData.specialties.map(s => s as UserRole).filter(s => s !== UserRole.MAKER)], // Add selected roles
+        avatarUrl: currentUser?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${formData.name}`, // Use existing avatar or generate new
+        rating: 5.0, // Start with 5 stars (New)
+        reviews: 0,
+        location: 'Rio Verde, GO', // Default for MVP
+        specialties: formData.specialties,
+        services: [formData.equipment],
+        bio: formData.bio,
+        isCertified: false
+    };
+
+    // Save to "Database"
+    saveUser(newUser);
 
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
-      alert('Sua aplicação foi enviada com sucesso! Nossa equipe entrará em contato em breve.');
-      setCurrentPage('home');
-    }, 2000);
+      alert('Cadastro realizado com sucesso! Você está sendo redirecionado para o seu painel.');
+      
+      // Auto-login the user
+      onLogin(newUser);
+    }, 1500);
   };
   
   const isSubmitDisabled = !formData.name || !formData.email || !formData.phone || !formData.bio || formData.specialties.length === 0 || isLoading;

@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 export const CubeIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
@@ -161,5 +162,14 @@ export const TruckIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
         <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
         <circle cx="5.5" cy="18.5" r="2.5"></circle>
         <circle cx="18.5" cy="18.5" r="2.5"></circle>
+    </svg>
+);
+
+export const QrCodeIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="7" height="7"></rect>
+        <rect x="14" y="3" width="7" height="7"></rect>
+        <rect x="14" y="14" width="7" height="7"></rect>
+        <rect x="3" y="14" width="7" height="7"></rect>
     </svg>
 );

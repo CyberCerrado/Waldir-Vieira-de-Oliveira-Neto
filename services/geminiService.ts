@@ -9,7 +9,8 @@ const fallbackQuote: IntelligentQuote = {
       "Verificar integridade da malha (manifold)",
       "Confirmar espessura mínima de parede (0.8mm)",
       "Ajustar orientação para minimizar suportes"
-  ]
+  ],
+  estimatedPrice: 50.00
 };
 
 export const getIntelligentPrice = async (request: Omit<QuoteRequest, 'files'>): Promise<IntelligentQuote> => {
@@ -21,10 +22,12 @@ export const getIntelligentPrice = async (request: Omit<QuoteRequest, 'files'>):
   const complexityFactor = request.description.length > 50 ? 1.5 : 1.0;
   const materialFactor = request.material === 'Resina' ? 1.8 : 1.0;
   
-  const estimatedPrice = (basePrice * complexityFactor * materialFactor).toFixed(2);
+  const estimatedPriceVal = (basePrice * complexityFactor * materialFactor);
+  const estimatedPriceFormatted = estimatedPriceVal.toFixed(2);
 
   return {
-      analysis: `Com base na descrição e no material selecionado (${request.material || 'PLA'}), estimamos o seguinte:\n\n- Tempo de impressão: ~4 a 8 horas\n- Peso estimado: ~60g - 120g\n- Complexidade: Média\n\nPreço Sugerido: R$ ${estimatedPrice}`,
+      analysis: `Com base na descrição e no material selecionado (${request.material || 'PLA'}), estimamos o seguinte:\n\n- Tempo de impressão: ~4 a 8 horas\n- Peso estimado: ~60g - 120g\n- Complexidade: Média`,
+      estimatedPrice: parseFloat(estimatedPriceFormatted),
       checklist: [
           "Verificar necessidade de suportes internos",
           "Checar tolerância dimensional para encaixes",

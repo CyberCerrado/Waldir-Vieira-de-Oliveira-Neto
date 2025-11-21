@@ -44,6 +44,7 @@ export interface Maker {
   software?: string[];
   avgComplexityTime?: string;
   basePrice?: number;
+  bio?: string;
 }
 
 export interface Product {
@@ -65,6 +66,9 @@ export interface PrintJob {
   color: string;
   fileUrl?: string;
   status: 'Aberto' | 'Em andamento' | 'Concluído';
+  paymentStatus: 'Pendente' | 'Pago';
+  price: number;      // Total value charged to client
+  serviceFee: number; // Platform revenue (e.g. 15%)
   createdAt: string; // ISO string
 }
 
@@ -109,6 +113,7 @@ export interface QuoteRequest {
 export interface IntelligentQuote {
     analysis: string;
     checklist: string[];
+    estimatedPrice: number; // Added numeric price for auto-fill
 }
 
 export interface MakerRecommendation {

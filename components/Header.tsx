@@ -4,16 +4,16 @@ import { CubeIcon, UserIcon, ZapIcon } from './Icons';
 import type { Page } from '../App';
 import type { Maker } from '../types';
 import { UserRole } from '../types';
-import { MOCK_MAKERS } from '../constants';
 
 interface HeaderProps {
   setCurrentPage: (page: Page) => void;
   currentUser: Maker | null;
   onLogoutClick: () => void;
   onDevLogin: (user: Maker) => void;
+  availableUsers?: Maker[];
 }
 
-const Header: React.FC<HeaderProps> = ({ setCurrentPage, currentUser, onLogoutClick, onDevLogin }) => {
+const Header: React.FC<HeaderProps> = ({ setCurrentPage, currentUser, onLogoutClick, onDevLogin, availableUsers = [] }) => {
   const isMaker = currentUser?.roles.includes(UserRole.MAKER);
   const [showDevLogin, setShowDevLogin] = useState(false);
 
@@ -71,23 +71,20 @@ const Header: React.FC<HeaderProps> = ({ setCurrentPage, currentUser, onLogoutCl
               </div>
             ) : (
                 <div className="flex items-center gap-2">
-                    {/* Google Button Container */}
-                    <div id="google-signin-button" className="hidden md:block"></div>
-                    
-                    {/* Dev/Demo Login Dropdown */}
+                    {/* Dev/Demo Login Dropdown - Only login option for MVP */}
                     <div className="relative">
                         <button 
                             onClick={() => setShowDevLogin(!showDevLogin)}
                             className="bg-maker-secondary text-maker-dark font-bold py-2 px-4 rounded-full text-sm hover:bg-yellow-400 transition-colors flex items-center shadow-sm"
                         >
                             <ZapIcon className="w-4 h-4 mr-2" />
-                            Entrar (Demo)
+                            Entrar / Cadastrar
                         </button>
 
                         {showDevLogin && (
-                            <div className="absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-2 animate-fade-in">
-                                <p className="text-xs font-bold text-gray-400 uppercase px-3 py-2">Escolha um perfil de teste:</p>
-                                {MOCK_MAKERS.map(maker => (
+                            <div className="absolute top-full right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-2 animate-fade-in max-h-[80vh] overflow-y-auto">
+                                <p className="text-xs font-bold text-gray-400 uppercase px-3 py-2">Login Rápido (Demo Ypetec):</p>
+                                {availableUsers.map(maker => (
                                     <button
                                         key={maker.id}
                                         onClick={() => handleDevUserSelect(maker)}
@@ -100,6 +97,15 @@ const Header: React.FC<HeaderProps> = ({ setCurrentPage, currentUser, onLogoutCl
                                         </div>
                                     </button>
                                 ))}
+                                <div className="border-t border-gray-100 mt-2 pt-2">
+                                    <button
+                                        onClick={() => { setShowDevLogin(false); setCurrentPage('becomeMaker'); }}
+                                        className="w-full text-left flex items-center p-2 hover:bg-yellow-50 rounded-lg transition-colors text-maker-primary font-semibold text-sm"
+                                    >
+                                        <span className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3 text-lg font-bold">+</span>
+                                        Criar Novo Cadastro
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>
