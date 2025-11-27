@@ -95,9 +95,6 @@ export const MOCK_PRINT_JOBS: PrintJob[] = [
     color: 'Preto',
     fileUrl: 'https://www.thingiverse.com/thing:2098322',
     status: 'Aberto',
-    paymentStatus: 'Pendente',
-    price: 45.00,
-    serviceFee: 6.75,
     createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 minutes ago
   },
   {
@@ -108,10 +105,7 @@ export const MOCK_PRINT_JOBS: PrintJob[] = [
     description: 'O clipe que prende a mangueira do pulverizador quebrou. Preciso de uma réplica resistente. Anexei fotos e medidas.',
     material: 'PETG',
     color: 'Laranja',
-    status: 'Em andamento',
-    paymentStatus: 'Pago',
-    price: 120.00,
-    serviceFee: 18.00,
+    status: 'Aberto',
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(), // 3 hours ago
   },
   {
@@ -123,9 +117,6 @@ export const MOCK_PRINT_JOBS: PrintJob[] = [
     material: 'ABS',
     color: 'Cinza Grafite',
     status: 'Aberto',
-    paymentStatus: 'Pendente',
-    price: 60.00,
-    serviceFee: 9.00,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
   },
 ];
